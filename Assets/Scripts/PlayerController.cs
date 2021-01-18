@@ -11,38 +11,73 @@ public class PlayerController : MonoBehaviour
     public Animator animator;
     public float runSpeed = 3.0f;
 
-    // Start is called before the first frame update
-    void Start()
+    private static PlayerController sharedInstance;
+    private Vector3 initialPosition;
+    private Vector2 initialVelocity;
+
+
+    //Initialize game before Start
+    private void Awake()
     {
+        sharedInstance = this;
         rigidBody = GetComponent<Rigidbody2D>();
+        initialPosition = transform.position;
+        initialVelocity = rigidBody.velocity;
         animator.SetBool("isAlive", true);
     }
 
-    // Update at a fixex period of time
+    // Update at a fixed period of time
     private void FixedUpdate()
     {
-        if (rigidBody.velocity.x < runSpeed) {
-            rigidBody.velocity = new Vector2(runSpeed, rigidBody.velocity.y);
+        GameState currState = GameManager.getInstance().currentGameState;
+
+        if (currState == GameState.InGame)
+        {
+            if (rigidBody.velocity.x < runSpeed)
+            {
+                rigidBody.velocity = new Vector2(runSpeed, rigidBody.velocity.y);
+            }
         }
-        
     }
     // Update is called once per frame
     void Update()
     {
+        bool canJump = GameManager.getInstance().currentGameState == GameState.InGame;
         bool isOnTheGround = IsOnTheGround();
         animator.SetBool("isGrounded", isOnTheGround);
 
-        if ((Input.GetMouseButtonDown(0) || Input.GetKeyDown(KeyCode.Space) || Input.GetKeyDown(KeyCode.W)) && isOnTheGround) {
+        if (canJump && (Input.GetMouseButtonDown(0) || Input.GetKeyDown(KeyCode.Space) || Input.GetKeyDown(KeyCode.W)) && isOnTheGround) {
             Jump();
         }   
     }
 
-    //Methods
+    // METHODS
+
+    // Start is called before the first frame update
+    public void StartGame()
+    {
+        animator.SetBool("isAlive", true);
+        transform.position = initialPosition;
+        rigidBody.velocity = initialVelocity;
+    }
+
+    // Access to object
+    public static PlayerController getInstance()
+    {
+        return sharedInstance;
+    }
+
     void Jump() {
             rigidBody.AddForce(Vector2.up * thrust, ForceMode2D.Impulse);
     }
 
     bool IsOnTheGround() {
         return Physics2D.Raycast(this.transform.position, Vector2.down, 1.0f, groundLayerMask.value);
+    }
+
+    // Set hit bunny animation and set gameover
+    public void KillPlayer() {
+        animator.SetBool("isAlive", false);
+        GameManager.getInstance().GameOver();
     }
 }
