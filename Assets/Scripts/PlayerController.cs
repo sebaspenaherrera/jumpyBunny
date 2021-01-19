@@ -14,6 +14,9 @@ public class PlayerController : MonoBehaviour
     private static PlayerController sharedInstance;
     private Vector3 initialPosition;
     private Vector2 initialVelocity;
+    private float initialGravity;
+
+    private const string HIGHEST_SCORE_KEY = "highestScore";
 
 
     //Initialize game before Start
@@ -24,6 +27,7 @@ public class PlayerController : MonoBehaviour
         initialPosition = transform.position;
         initialVelocity = rigidBody.velocity;
         animator.SetBool("isAlive", true);
+        initialGravity = rigidBody.gravityScale;
     }
 
     // Update at a fixed period of time
@@ -58,7 +62,8 @@ public class PlayerController : MonoBehaviour
     {
         animator.SetBool("isAlive", true);
         transform.position = initialPosition;
-        rigidBody.velocity = Vector3.zero;
+        rigidBody.velocity = initialVelocity;
+        rigidBody.gravityScale = initialGravity;
     }
 
     // Access to object
@@ -78,6 +83,36 @@ public class PlayerController : MonoBehaviour
     // Set hit bunny animation and set gameover
     public void KillPlayer() {
         animator.SetBool("isAlive", false);
+        
+
+        //Save max score
+        int highestScore = PlayerPrefs.GetInt(HIGHEST_SCORE_KEY);
+        int currentScore = GetDistance();
+        if (currentScore > highestScore) {
+            PlayerPrefs.SetInt(HIGHEST_SCORE_KEY, currentScore);
+            
+        }
+        print("Saved highest score: " + GetMaxScore());
+
+
+        rigidBody.gravityScale = 0.0f;
+        rigidBody.velocity = Vector2.zero;
         GameManager.getInstance().GameOver();
+    }
+
+    //Calculate distance
+    public int GetDistance() {
+        int distance = (int) Vector2.Distance(initialPosition,transform.position);
+        return distance;
+    }
+
+    // Return highest score
+    public int GetMaxScore() {
+        return PlayerPrefs.GetInt(HIGHEST_SCORE_KEY);
+    }
+
+    // Reset highest score
+    public void ResetHighestScore() {
+        PlayerPrefs.SetInt(HIGHEST_SCORE_KEY, 0);
     }
 }
