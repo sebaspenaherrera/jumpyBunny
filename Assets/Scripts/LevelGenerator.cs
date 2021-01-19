@@ -24,9 +24,7 @@ public class LevelGenerator : MonoBehaviour
     private void Awake()
     {
         _sharedInstance = this;
-        for (byte i = 0; i < initialBlockNumber; i++) {
-            addNewBlock();
-        }
+        CreateInitialBlocks();
     }
 
     // Start is called before the first frame update
@@ -43,8 +41,10 @@ public class LevelGenerator : MonoBehaviour
 
     // METHODS
     // Add new bloc
-    public void addNewBlock() {
-        int randNumber = Random.Range(0, legoBlocks.Count);
+    public void AddNewBlock(bool initialBlock = false) {
+
+        //If first block is needed, then select block0, else randomize level
+        int randNumber = initialBlock? 0:Random.Range(0, legoBlocks.Count);
         //Same than create an object in C# but for Unity is used "Instantiate" to create unity block that is not just code
         //Similar to var block = new LevelBlock();
         var block = Instantiate(legoBlocks[randNumber]);
@@ -62,6 +62,28 @@ public class LevelGenerator : MonoBehaviour
 
         block.transform.position = blockPosition;
         currentBlocks.Add(block);
+    }
+
+    public void RemoveOldBlock() {
+        var oldBlock = currentBlocks[0];
+        currentBlocks.Remove(oldBlock);
+        Destroy(oldBlock.gameObject);
+    }
+
+    public void RemoveAllBlocks() {
+        while (currentBlocks.Count > 0) {
+            RemoveOldBlock();
+        }
+    }
+
+    public void CreateInitialBlocks() {
+        if (currentBlocks.Count > 0) {
+            return;
+        }
+        for (byte i = 0; i < initialBlockNumber; i++)
+        {
+            AddNewBlock(true);
+        }
     }
 
 }

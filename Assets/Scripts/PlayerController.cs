@@ -58,7 +58,7 @@ public class PlayerController : MonoBehaviour
     {
         animator.SetBool("isAlive", true);
         transform.position = initialPosition;
-        rigidBody.velocity = initialVelocity;
+        rigidBody.velocity = Vector3.zero;
     }
 
     // Access to object
